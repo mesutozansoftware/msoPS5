@@ -425,9 +425,12 @@ file(GLOB package_install_src CONFIGURE_DEPENDS
 add_library(package_install STATIC ${package_install_src})
 target_include_directories(package_install PUBLIC "${KYTY_SOURCE_DIR}")
 target_link_libraries(package_install PRIVATE ZLIB::ZLIB nlohmann_json::nlohmann_json)
+# The installer reports errors with exceptions; the project disables them by default.
+target_compile_options(package_install PRIVATE -fexceptions)
 
 add_executable(package_installer_tests EXCLUDE_FROM_ALL "${KYTY_TESTS_DIR}/PackageInstallerTests.cpp")
 target_link_libraries(package_installer_tests package_install)
+target_compile_options(package_installer_tests PRIVATE -fexceptions)
 
 add_executable(archive_file_tests EXCLUDE_FROM_ALL
 	"${KYTY_TESTS_DIR}/ArchiveFileTests.cpp"
