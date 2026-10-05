@@ -10,6 +10,12 @@ if(NOT KYTY_GENERATOR_IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
+# msoPS5 targets Apple Silicon Macs. PS5 games are x86-64 code that the emulator runs directly
+# on the CPU, so the emulator is built for x86_64 and executes under Rosetta 2.
+if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "msoPS5 runs under Rosetta 2 and must be built for x86_64")
+endif()
+
 project(Kyty)
 
 find_program(SCCACHE_PROGRAM sccache)
@@ -36,8 +42,11 @@ if(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
 	set(LINUX TRUE)
 endif()
 
-if (NOT (WIN32 OR LINUX OR APPLE))
-    message(FATAL_ERROR "only Windows, Linux, and macOS builds are supported")
+if(NOT APPLE)
+	message(FATAL_ERROR "msoPS5 only supports macOS on Apple Silicon")
+endif()
+if(NOT CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+	message(FATAL_ERROR "msoPS5 must be built with CMAKE_OSX_ARCHITECTURES=x86_64; it runs under Rosetta 2 on Apple Silicon")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)

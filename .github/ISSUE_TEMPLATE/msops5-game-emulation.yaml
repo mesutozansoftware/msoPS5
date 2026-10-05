@@ -117,36 +117,36 @@ body:
   - type: input
     id: os
     attributes:
-      label: OS
-      description: Include the operating system name, version, and edition when useful.
-      placeholder: "Example: Windows 11 Pro 25H2"
+      label: macOS version
+      description: Include the macOS version and build number.
+      placeholder: "Example: macOS 26.1 (25B78)"
     validations:
       required: true
 
   - type: input
     id: cpu
     attributes:
-      label: CPU
-      description: Include the exact processor model.
-      placeholder: "Example: AMD Ryzen 9 9950X3D"
+      label: Mac model and chip
+      description: Include the Mac model and the exact Apple silicon chip.
+      placeholder: "Example: MacBook Pro 14-inch (2024), Apple M4 Pro 14-core CPU"
     validations:
       required: true
 
   - type: input
     id: gpu
     attributes:
-      label: GPU
-      description: Include the graphics card model and driver version when available.
-      placeholder: "Example: NVIDIA GeForce RTX 5080, driver 576.80"
+      label: GPU cores
+      description: Include the number of GPU cores of the chip.
+      placeholder: "Example: 20-core GPU"
     validations:
       required: true
 
   - type: input
     id: ram-vram
     attributes:
-      label: RAM / VRAM
-      description: Include both system memory and video memory.
-      placeholder: "Example: 64 GB DDR5 RAM / 16 GB VRAM"
+      label: Unified memory
+      description: Include the amount of unified memory.
+      placeholder: "Example: 24 GB"
     validations:
       required: true
 

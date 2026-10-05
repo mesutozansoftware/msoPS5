@@ -1,17 +1,14 @@
 # msoPS5
 
-[![Build msoPS5 (Windows)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28Windows%29&label=Build%20msoPS5%20%28Windows%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
-[![Build msoPS5 (Linux)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28Linux%29&label=Build%20msoPS5%20%28Linux%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
-[![Build msoPS5 (macOS)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28macOS%29&label=Build%20msoPS5%20%28macOS%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20x64%20%7C%20Linux%20x64-0078D4.svg)](#system-requirements)
+[![Build msoPS5 (macOS Apple Silicon)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28macOS%20Apple%20Silicon%29&label=Build%20msoPS5)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
+[![Platform](https://img.shields.io/badge/platform-macOS%20Apple%20Silicon-0078D4.svg)](#system-requirements)
 [![Status](https://img.shields.io/badge/status-active%20development-orange.svg)](#current-status)
 [![License](https://img.shields.io/badge/license-GPL--2.0-blue.svg)](LICENSE)
 
-msoPS5 is a free and open-source PlayStation 5 emulator written in C++, focused on bringing
-PS5 emulation to macOS. It is a fork of [KytyPS5](https://github.com/KytyPS5/KytyPS5), which is
-itself based on a heavily modified version of [Kyty](https://github.com/InoriRus/Kyty). Windows
-and Linux builds are kept working alongside macOS. The project is in active development, and
-behavior can change significantly between builds.
+msoPS5 is a free and open-source PlayStation 5 emulator for Macs with Apple silicon, written in
+C++. It is a fork of [KytyPS5](https://github.com/KytyPS5/KytyPS5), which is itself based on a
+heavily modified version of [Kyty](https://github.com/InoriRus/Kyty). The project is in active
+development, and behavior can change significantly between builds.
 
 > [!IMPORTANT]
 > msoPS5 is not affiliated with Sony Interactive Entertainment or PlayStation, nor with the
@@ -26,11 +23,9 @@ planned.
 
 Development is currently focused on expanding game compatibility and improving boot reliability.
 
-Windows and Linux are the primary platforms and receive the most testing.
-
-macOS support is experimental. The emulator is built for x86-64 and runs on Apple Silicon under
-Rosetta 2, with Vulkan provided by MoltenVK. A small number of titles have been verified in-game
-on Apple Silicon hardware; see [Building on macOS](#building-on-macos).
+msoPS5 runs only on Macs with Apple silicon (M1 or later). PS5 games are x86-64 programs that
+the emulator executes directly, so msoPS5 itself is an x86-64 app that runs under Rosetta 2, with
+Vulkan provided by MoltenVK. Intel Macs, Windows and Linux are not supported.
 
 msoPS5 shares its emulation core with KytyPS5, so the community-maintained
 [KytyPS5 Compatibility List](https://kytyps5.github.io/) is a good guide to which games work.
@@ -82,21 +77,16 @@ or graphical glitches, so please include the version you tested when reporting a
 Testing games and submitting detailed bug reports are useful ways to contribute. Search existing
 issues first, then use the **Game Emulation Status Report** template and attach the complete log file.
 
-Code contributions should be focused, build successfully on the platforms they touch, and include
-relevant tests where practical. Windows is the primary target, so a change that alters shared code
-should not regress it; changes confined to a platform's own code paths only need to build there. Because msoPS5 is still evolving quickly, consider opening an issue before
+Code contributions should be focused, build successfully on macOS, and include relevant tests
+where practical. Because msoPS5 is still evolving quickly, consider opening an issue before
 starting a large change.
 
 ### Formatting
 
 Set up the clang-format hook after cloning:
 
-Install `pre-commit` using the method appropriate for your platform:
-
-- **Arch Linux / CachyOS:** `sudo pacman -S pre-commit`
-- **Other Linux / macOS / Windows:** `python -m pip install pre-commit`
-
-Then install the Git hook:
+Install `pre-commit` (`brew install pre-commit` or `python3 -m pip install pre-commit`), then
+install the Git hook:
 
 ```bash
 python -m pre_commit install --install-hooks
@@ -121,132 +111,35 @@ Important areas of the codebase:
 The renderer targets Vulkan 1.3. Keep shader changes aligned with both the RDNA 2 ISA semantics and
 the Vulkan/SPIR-V validation rules.
 
+## Installing
+
+Download the latest `msoPS5-…-macOS-AppleSilicon.dmg` from the
+[releases page](https://github.com/mesutozansoftware/msoPS5/releases), open it, and drag
+**msoPS5** onto **Applications**. If Rosetta 2 is not installed yet, macOS offers to install it
+the first time msoPS5 starts (or run `softwareupdate --install-rosetta`).
+
+msoPS5 is not notarized by Apple, so the first launch is blocked by Gatekeeper. Either
+right-click msoPS5 in Applications, choose **Open** and confirm, or remove the quarantine flag:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/msoPS5.app
+```
+
 ## Building
 
 ### System requirements
 
-- Windows 10 version 1803, a current Linux distribution, or macOS on Apple Silicon
-- A 64-bit x86 processor (on macOS, an Apple Silicon processor with Rosetta 2)
-- A Vulkan 1.3-capable GPU with current drivers (on macOS, Vulkan is provided by the bundled
-  MoltenVK)
+- A Mac with Apple silicon (M1 or later) running macOS 13 or newer
+- Rosetta 2 (`softwareupdate --install-rosetta`)
+- Vulkan is provided by the bundled MoltenVK
 
-### Build requirements (Windows)
+### Building from source
 
-- Git
-- CMake 3.22.1 or newer
-- Ninja
-- Visual Studio 2022 or Build Tools 2022 with the **Desktop development with C++** workload and
-  **C++ Clang tools for Windows** component
-- Qt 6 for MSVC 2022 64-bit, including Concurrent, Network, and Widgets
-- [glslang](https://github.com/KhronosGroup/glslang/releases) (`glslangValidator`) on `PATH`
-
-The Microsoft C++ compiler (`cl.exe`) is not supported; use `clang-cl`.
-
-Open an **x64 Native Tools Command Prompt for Visual Studio 2022** (or the equivalent Developer
-PowerShell), change to the repository root, and initialize the dependencies:
-
-```powershell
-git submodule update --init --recursive
-```
-
-Configure the project. Replace the Qt path with the version installed on your system:
-
-```powershell
-cmake -S . -B _Build/windows -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64"
-```
-
-Build the launcher and stage a runnable installation:
-
-```powershell
-cmake --build _Build/windows --target launcher
-cmake --install _Build/windows --prefix _Build/windows/install
-```
-
-The finished application and its runtime dependencies will be placed in
-`_Build/windows/install`.
-
-### Building on Linux
-
-Install the toolchain and the libraries the bundled SDL3 needs. Without the audio, Wayland and
-udev development packages SDL3 quietly configures itself without those backends, and the resulting
-build has no working sound and no gamepad hotplug:
-
-```bash
-sudo apt-get install --no-install-recommends \
-  clang lld ninja-build cmake git glslang-tools pkg-config \
-  libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxfixes-dev \
-  libxi-dev libxrandr-dev libxss-dev libxtst-dev libxkbcommon-dev \
-  libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols
-```
-
-Qt 6 (Concurrent, Network, Widgets) is required for the launcher — either the distribution packages
-(`qt6-base-dev`) or an official Qt installation.
-
-```bash
-git submodule update --init --recursive
-
-cmake -S . -B _Build/linux -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_PREFIX_PATH="$Qt6_DIR"
-
-cmake --build _Build/linux --target launcher --parallel
-cmake --install _Build/linux --prefix _Build/linux/install
-```
-
-The install step copies the Qt libraries and plugins next to the binaries, so
-`_Build/linux/install` runs without a matching system Qt. FFmpeg is linked statically
-from the pinned [KytyPS5 FFmpeg core](https://github.com/KytyPS5/ext-ffmpeg-core)
-release, including VP9 and WebM support. System FFmpeg packages are not required.
-
-To build `kyty_emulator` and the `kyty_tests` target without Qt, use a separate build directory:
-
-```bash
-git submodule update --init --recursive
-
-cmake -S . -B _Build/linux-no-qt -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-  -DKYTY_BUILD_LAUNCHER=OFF
-
-cmake --build _Build/linux-no-qt --target kyty_emulator kyty_tests --parallel
-```
-
-As on Windows, the MSVC compiler is not used; Clang is required. `cl.exe` is rejected at configure
-time.
-
-The CMake source root is the repository root.
-
-### Building on NixOS
-
-A development shell provides Clang, CMake, Ninja, Qt 6, the Vulkan headers, and the SDL3 backend
-libraries. Enter it and configure exactly as on other Linux distributions; the shell exports
-`CMAKE_PREFIX_PATH` and `QT_PLUGIN_PATH`, so the `-DCMAKE_PREFIX_PATH="$Qt6_DIR"` argument is not
-needed:
-
-```bash
-nix-shell # or: nix develop
-git submodule update --init --recursive
-
-cmake -S . -B _Build/linux -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-
-cmake --build _Build/linux --target launcher --parallel
-cmake --install _Build/linux --prefix _Build/linux/install
-```
-
-The configure step downloads the FFmpeg prebuilts and the `xbyak`, `zydis`, `zstd`, and ZArchive
-sources, so it needs network access; a fully sandboxed `nix build` would require vendoring those
-inputs. A Vulkan 1.3 driver must be available at runtime (on NixOS,
-`hardware.graphics.enable = true`).
-
-### Building on macOS
-
-macOS builds target x86-64 and run under Rosetta 2 on Apple Silicon, so the PS5's x86-64 game
-code executes through the same translation layer as the emulator itself. Prebuilt archives are
-attached to releases; the steps below are for building from source.
+msoPS5 is always built for x86-64 so that the PS5's x86-64 game code runs through Rosetta 2
+together with the emulator; CMake selects `x86_64` automatically and rejects other architectures.
 
 Requirements:
 
-- An Apple Silicon Mac with Rosetta 2 installed (`softwareupdate --install-rosetta`)
 - Xcode (or the Command Line Tools)
 - Homebrew packages: `brew install cmake ninja glslang`
 - Qt 6 (Concurrent, Network, Widgets) with x86-64 support. The official Qt installation is
@@ -256,78 +149,36 @@ Requirements:
 git submodule update --init --recursive
 
 cmake -S . -B _Build/macos -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
   -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
   -DCMAKE_PREFIX_PATH="$Qt6_DIR"
 
 cmake --build _Build/macos --target launcher --parallel
 cmake --install _Build/macos --prefix _Build/macos/install
+
+# Bundle MoltenVK (Vulkan) into the install and the app, then build the disk image.
+packaging/macos/bundle-moltenvk.sh _Build/macos/install
+packaging/macos/make-dmg.sh _Build/macos/install/msoPS5.app _Build/msoPS5.dmg
 ```
 
 The build re-signs `kyty_emulator` with the JIT entitlements it needs to execute translated
-guest code; no manual signing step is required. When the launcher is built, the install
-also produces `_Build/macos/install/msoPS5.app` — double-click to launch the GUI.
-A flat `kyty_emulator` is kept for CLI usage.
-
-Vulkan comes from MoltenVK. Download `MoltenVK-macos.tar` from the
-[MoltenVK releases](https://github.com/KhronosGroup/MoltenVK/releases), then copy
-`MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib` next to the flat `kyty_emulator`
-(and, for the bundle, into `msoPS5.app/Contents/Frameworks/`) and ad-hoc sign it:
-
-```bash
-codesign --force --sign - _Build/macos/install/libMoltenVK.dylib
-# For the bundle (if present):
-codesign --force --sign - _Build/macos/install/msoPS5.app/Contents/Frameworks/libMoltenVK.dylib
-codesign --force --sign - _Build/macos/install/msoPS5.app
-```
-
-Release archives already include a signed `libMoltenVK.dylib` (both flat and inside the bundle).
+guest code; no manual signing step is required. The install produces
+`_Build/macos/install/msoPS5.app`, and a flat `kyty_emulator` is kept next to it for CLI usage.
+FFmpeg is linked statically from the pinned
+[KytyPS5 FFmpeg core](https://github.com/KytyPS5/ext-ffmpeg-core) release.
 
 ### Regression tests
 
 Build every regression executable and run the registered tests with:
 
-```powershell
-cmake --build _Build/windows --target kyty_tests
-ctest --test-dir _Build/windows --output-on-failure
+```bash
+cmake --build _Build/macos --target kyty_tests
+ctest --test-dir _Build/macos --output-on-failure
 ```
-
-Use `_Build/linux` instead of `_Build/windows` for a Linux build.
-
-### Visual Studio Code
-
-A ready-made Visual Studio Code setup is included in [`.vscode`](.vscode). It configures CMake
-Tools to build the project with Ninja and `clang-cl` and provides launch profiles for both
-`launcher.exe` and `kyty_emulator.exe`. It is Windows-only: VS Code settings cannot select a
-compiler per platform, so on Linux configure from the command line as shown above.
-
-Before using it:
-
-1. Install the **CMake Tools** and **C/C++** extensions in Visual Studio Code.
-2. Update `CMAKE_PREFIX_PATH` in [`.vscode/settings.json`](.vscode/settings.json) to point to your
-   Qt 6 MSVC installation.
-3. Update the `--game` path in [`.vscode/launch.json`](.vscode/launch.json) for the
-   **Debug kyty_emulator** profile.
-4. Open the repository in an x64 Visual Studio developer environment, configure the CMake project,
-   and select a launch profile from **Run and Debug**.
 
 ## Running
 
-Update your graphics driver before reporting rendering problems.
-
-To use the graphical launcher:
-
-```powershell
-.\_Build\windows\install\launcher.exe
-```
-
-```bash
-./_Build/linux/install/launcher
-```
-
-```bash
-open _Build/macos/install/msoPS5.app  # or double-click in Finder
-```
+To use the graphical launcher, open msoPS5 from Applications (or
+`open _Build/macos/install/msoPS5.app` for a local build).
 
 On first launch, add one or more game folders in the global settings. The launcher searches those
 folders recursively for game directories containing `eboot.bin` and ZArchive (`.zar`) game dumps
@@ -335,23 +186,11 @@ whose archive root contains `eboot.bin`. Select a detected game and run it from 
 ZArchive dumps are mounted read-only and streamed directly; they do not need to be extracted first.
 
 The emulator can also be started directly with a legally obtained game directory, ELF file, or
-ZArchive dump:
-
-```powershell
-.\_Build\windows\install\kyty_emulator.exe --game "D:\Games\ExampleGame"
-.\_Build\windows\install\kyty_emulator.exe --game "D:\Games\ExampleGame.zar"
-```
+ZArchive dump. The adjacent flat or app-bundled `libMoltenVK.dylib` is found automatically:
 
 ```bash
-./_Build/linux/install/kyty_emulator --game "/games/ExampleGame"
-./_Build/linux/install/kyty_emulator --game "/games/ExampleGame.zar"
-```
-
-On macOS, the adjacent flat or app-bundled `libMoltenVK.dylib` is found automatically; no
-environment variable is required:
-
-```bash
-./_Build/macos/install/kyty_emulator --game "/games/ExampleGame"
+/Applications/msoPS5.app/Contents/MacOS/kyty_emulator --game "/games/ExampleGame"
+/Applications/msoPS5.app/Contents/MacOS/kyty_emulator --game "/games/ExampleGame.zar"
 ```
 
 To override the Vulkan loader, set `SDL_VULKAN_LIBRARY`:
