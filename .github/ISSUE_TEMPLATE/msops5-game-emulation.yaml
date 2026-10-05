@@ -1,5 +1,5 @@
 name: Game Emulation Status Report
-description: Submit a KytyPS5 game compatibility result, including boot, rendering, audio, input, or gameplay behavior.
+description: Submit a msoPS5 game compatibility result, including boot, rendering, audio, input, or gameplay behavior.
 title: "[GAME STATUS]: "
 body:
   - type: markdown
@@ -10,7 +10,7 @@ body:
         Before submitting, please:
         - Search existing issues first.
         - Re-test with a clean game dump.
-        - Use the latest KytyPS5 build available to you.
+        - Use the latest msoPS5 build available to you.
         - Attach the complete log file instead of edited snippets.
 
   - type: markdown
@@ -39,7 +39,7 @@ body:
   - type: input
     id: kyty-version
     attributes:
-      label: KytyPS5 version
+      label: msoPS5 version
       description: Include the exact build you tested so the report can be matched to the right code.
       placeholder: "Example: v0.0.1"
     validations:
@@ -71,7 +71,7 @@ body:
     id: regression-builds
     attributes:
       label: Last working build / first broken build
-      description: Optional. Fill this in if the same game worked in an older KytyPS5 build.
+      description: Optional. Fill this in if the same game worked in an older msoPS5 build.
       placeholder: "Example: last worked in v0.0.1, first broke in v0.0.1"
 
   - type: markdown
@@ -92,9 +92,9 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps to reproduce the result
-      description: List the shortest path to the reported status or failure from a fresh KytyPS5 start.
+      description: List the shortest path to the reported status or failure from a fresh msoPS5 start.
       placeholder: |
-        1. Open KytyPS5.
+        1. Open msoPS5.
         2. Boot the game.
         3. Select ...
     validations:
@@ -159,7 +159,7 @@ body:
     id: log-file
     attributes:
       label: Log file upload
-      description: Drag the full KytyPS5 log (_kyty.txt) into this box, or link to the complete unmodified file.
+      description: Drag the full msoPS5 log (_kyty.txt) into this box, or link to the complete unmodified file.
       placeholder: "Attach the full log file here."
     validations:
       required: true

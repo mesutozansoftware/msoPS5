@@ -75,7 +75,7 @@ pkgs.mkShell {
     export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath runtimeLibs}:''${LD_LIBRARY_PATH:-}"
 
     if [ -z "''${KYTY_SHELL_QUIET:-}" ]; then
-      echo "KytyPS5 dev shell"
+      echo "msoPS5 dev shell"
       echo "  cmake -S . -B _Build/linux -G Ninja -DCMAKE_BUILD_TYPE=Release \\"
       echo "    -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
       echo "  cmake --build _Build/linux --target launcher --parallel"

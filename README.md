@@ -1,29 +1,26 @@
-# KytyPS5
+# msoPS5
 
-[![Build KytyPS5 (Windows)](https://img.shields.io/github/check-runs/KytyPS5/KytyPS5/main?nameFilter=Build%20KytyPS5%20%28Windows%29&label=Build%20KytyPS5%20%28Windows%29)](https://github.com/KytyPS5/KytyPS5/actions/workflows/build.yml)
-[![Build KytyPS5 (Linux)](https://img.shields.io/github/check-runs/KytyPS5/KytyPS5/main?nameFilter=Build%20KytyPS5%20%28Linux%29&label=Build%20KytyPS5%20%28Linux%29)](https://github.com/KytyPS5/KytyPS5/actions/workflows/build.yml)
-[![Build KytyPS5 (macOS)](https://img.shields.io/github/check-runs/KytyPS5/KytyPS5/main?nameFilter=Build%20KytyPS5%20%28macOS%29&label=Build%20KytyPS5%20%28macOS%29)](https://github.com/KytyPS5/KytyPS5/actions/workflows/build.yml)
-[![Platform](https://img.shields.io/badge/platform-Windows%20x64%20%7C%20Linux%20x64%20%7C%20macOS%20x86__64-0078D4.svg)](#system-requirements)
+[![Build msoPS5 (Windows)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28Windows%29&label=Build%20msoPS5%20%28Windows%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
+[![Build msoPS5 (Linux)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28Linux%29&label=Build%20msoPS5%20%28Linux%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
+[![Build msoPS5 (macOS)](https://img.shields.io/github/check-runs/mesutozansoftware/msoPS5/main?nameFilter=Build%20msoPS5%20%28macOS%29&label=Build%20msoPS5%20%28macOS%29)](https://github.com/mesutozansoftware/msoPS5/actions/workflows/build.yml)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20x64%20%7C%20Linux%20x64-0078D4.svg)](#system-requirements)
 [![Status](https://img.shields.io/badge/status-active%20development-orange.svg)](#current-status)
 [![License](https://img.shields.io/badge/license-GPL--2.0-blue.svg)](LICENSE)
 
-**[Weekly updates](https://github.com/KytyPS5/KytyPS5/discussions/862)** — game progress, recent fixes and ongoing development.
-
-**[Development on Discord](https://discord.gg/UNrkMqGaBg)** — KytyPS5 development.
-
-KytyPS5 is a free and open-source PlayStation 5 emulator written in C++ for Windows and Linux,
-with experimental macOS support. It is based on a heavily modified version of
-[Kyty](https://github.com/InoriRus/Kyty). The project is in active development, and behavior
-can change significantly between builds.
+msoPS5 is a free and open-source PlayStation 5 emulator written in C++, focused on bringing
+PS5 emulation to macOS. It is a fork of [KytyPS5](https://github.com/KytyPS5/KytyPS5), which is
+itself based on a heavily modified version of [Kyty](https://github.com/InoriRus/Kyty). Windows
+and Linux builds are kept working alongside macOS. The project is in active development, and
+behavior can change significantly between builds.
 
 > [!IMPORTANT]
-> KytyPS5 is not affiliated with Sony Interactive Entertainment or PlayStation. The project does
-> not distribute games or copyrighted system software. Use only game files that you have obtained
-> legally.
+> msoPS5 is not affiliated with Sony Interactive Entertainment or PlayStation, nor with the
+> KytyPS5 project. The project does not distribute games or copyrighted system software. Use
+> only game files that you have obtained legally.
 
 ## Current Status
 
-KytyPS5 can boot 2D games and a selection of 3D games, including titles built with Unreal Engine
+msoPS5 can boot 2D games and a selection of 3D games, including titles built with Unreal Engine
 4/5, Unity, and custom engines. External low-level emulation modules are neither required nor
 planned.
 
@@ -35,8 +32,8 @@ macOS support is experimental. The emulator is built for x86-64 and runs on Appl
 Rosetta 2, with Vulkan provided by MoltenVK. A small number of titles have been verified in-game
 on Apple Silicon hardware; see [Building on macOS](#building-on-macos).
 
-Community game test results are available in the
-[KytyPS5 Compatibility List](https://kytyps5.github.io/).
+msoPS5 shares its emulation core with KytyPS5, so the community-maintained
+[KytyPS5 Compatibility List](https://kytyps5.github.io/) is a good guide to which games work.
 
 ## Bugs and Issues
 
@@ -87,7 +84,7 @@ issues first, then use the **Game Emulation Status Report** template and attach 
 
 Code contributions should be focused, build successfully on the platforms they touch, and include
 relevant tests where practical. Windows is the primary target, so a change that alters shared code
-should not regress it; changes confined to a platform's own code paths only need to build there. Because KytyPS5 is still evolving quickly, consider opening an issue before
+should not regress it; changes confined to a platform's own code paths only need to build there. Because msoPS5 is still evolving quickly, consider opening an issue before
 starting a large change.
 
 ### Formatting
@@ -269,19 +266,19 @@ cmake --install _Build/macos --prefix _Build/macos/install
 
 The build re-signs `kyty_emulator` with the JIT entitlements it needs to execute translated
 guest code; no manual signing step is required. When the launcher is built, the install
-also produces `_Build/macos/install/KytyPS5.app` — double-click to launch the GUI.
+also produces `_Build/macos/install/msoPS5.app` — double-click to launch the GUI.
 A flat `kyty_emulator` is kept for CLI usage.
 
 Vulkan comes from MoltenVK. Download `MoltenVK-macos.tar` from the
 [MoltenVK releases](https://github.com/KhronosGroup/MoltenVK/releases), then copy
 `MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib` next to the flat `kyty_emulator`
-(and, for the bundle, into `KytyPS5.app/Contents/Frameworks/`) and ad-hoc sign it:
+(and, for the bundle, into `msoPS5.app/Contents/Frameworks/`) and ad-hoc sign it:
 
 ```bash
 codesign --force --sign - _Build/macos/install/libMoltenVK.dylib
 # For the bundle (if present):
-codesign --force --sign - _Build/macos/install/KytyPS5.app/Contents/Frameworks/libMoltenVK.dylib
-codesign --force --sign - _Build/macos/install/KytyPS5.app
+codesign --force --sign - _Build/macos/install/msoPS5.app/Contents/Frameworks/libMoltenVK.dylib
+codesign --force --sign - _Build/macos/install/msoPS5.app
 ```
 
 Release archives already include a signed `libMoltenVK.dylib` (both flat and inside the bundle).
@@ -329,7 +326,7 @@ To use the graphical launcher:
 ```
 
 ```bash
-open _Build/macos/install/KytyPS5.app  # or double-click in Finder
+open _Build/macos/install/msoPS5.app  # or double-click in Finder
 ```
 
 On first launch, add one or more game folders in the global settings. The launcher searches those
@@ -379,16 +376,19 @@ untested generated changes may be closed without review.
 
 ## License
 
-KytyPS5 is licensed under the [GNU General Public License version 2](LICENSE)
+msoPS5 is licensed under the [GNU General Public License version 2](LICENSE)
 (`GPL-2.0-only`).
 
-This project is based on the original [Kyty](https://github.com/InoriRus/Kyty), which was released
+msoPS5 is a fork of [KytyPS5](https://github.com/KytyPS5/KytyPS5), which is licensed under the
+same terms. KytyPS5 is based on the original [Kyty](https://github.com/InoriRus/Kyty), which was released
 under the MIT License. Kyty's original copyright and license notice are preserved in
 [`LICENSES/Kyty-MIT.txt`](LICENSES/Kyty-MIT.txt). Third-party components remain subject to the
 licenses included with those components.
 
 ## Special Thanks
 
+- [KytyPS5/KytyPS5](https://github.com/KytyPS5/KytyPS5) — msoPS5 is a fork of KytyPS5, and its
+  emulation core comes from that project.
 - [InoriRus/Kyty](https://github.com/InoriRus/Kyty) — KytyPS5 is based on a heavily modified version
   of the original Kyty project.
 - [shadps4-emu/shadPS4](https://github.com/shadps4-emu/shadPS4) — reference for understanding PS4

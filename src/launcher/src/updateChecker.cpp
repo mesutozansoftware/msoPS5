@@ -16,9 +16,8 @@
 
 namespace {
 
-constexpr char DEFAULT_FEED_URL[]  = "https://kytyps5.github.io/data/updates.json";
-constexpr char FALLBACK_FEED_URL[] =
-    "https://api.github.com/repos/KytyPS5/KytyPS5/releases/latest";
+// msoPS5 publishes its releases only on GitHub, so there is a single feed.
+constexpr char FEED_URL[] = "https://api.github.com/repos/mesutozansoftware/msoPS5/releases/latest";
 
 } // namespace
 
@@ -63,7 +62,8 @@ void UpdateChecker::Check(bool manual) {
 	}
 	m_checking_updates = true;
 	emit CheckingChanged(true);
-	FetchUpdateInfo(DEFAULT_FEED_URL, false, manual);
+	// Treat the only feed as the final one so no second request is made.
+	FetchUpdateInfo(FEED_URL, true, manual);
 }
 
 void UpdateChecker::FetchUpdateInfo(const char* url, bool fallback, bool manual) {
@@ -95,7 +95,7 @@ void UpdateChecker::FetchUpdateInfo(const char* url, bool fallback, bool manual)
 					m_primary_tag      = info.tag;
 					m_primary_page_url = info.page_url;
 				}
-				FetchUpdateInfo(FALLBACK_FEED_URL, true, manual);
+				FetchUpdateInfo(FEED_URL, true, manual);
 				return;
 			}
 		}
@@ -136,7 +136,7 @@ void UpdateChecker::ShowUpdateResult(const UpdateInfo& info, bool manual) {
 	    tr("An update is available.\n\nCurrent: %1\nLatest: %2\n\n"
 	       "Open the release page?")
 	        .arg(QString::fromLatin1(KYTY_RELEASE_TAG), info.tag);
-	if (QMessageBox::question(m_parent, tr("KytyPS5 Update"), message,
+	if (QMessageBox::question(m_parent, tr("msoPS5 Update"), message,
 	                          QMessageBox::Open | QMessageBox::Cancel,
 	                          QMessageBox::Open) == QMessageBox::Open) {
 		QDesktopServices::openUrl(info.page_url);

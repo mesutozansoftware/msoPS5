@@ -1,4 +1,4 @@
-name: Build and Release KytyPS5
+name: Build and Release msoPS5
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ concurrency:
 
 env:
   SCCACHE_GHA_ENABLED: "true"
-  KYTY_BUILD_ORIGIN: ${{ github.repository != 'KytyPS5/KytyPS5' && 'Fork' || github.event_name == 'push' && 'Official' || 'Source' }}
+  KYTY_BUILD_ORIGIN: ${{ github.repository != 'mesutozansoftware/msoPS5' && 'Fork' || github.event_name == 'push' && 'Official' || 'Source' }}
   KYTY_BUILD_REPOSITORY: ${{ github.repository }}
 
 jobs:
@@ -27,10 +27,10 @@ jobs:
         id: release_tag
         shell: bash
         run: |
-          echo "value=KytyPS5-$(date -u +'%Y-%m-%d')-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "value=msoPS5-$(date -u +'%Y-%m-%d')-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
   windows:
-    name: Build KytyPS5 (Windows)
+    name: Build msoPS5 (Windows)
     needs: metadata
     runs-on: windows-2022
 
@@ -131,12 +131,12 @@ jobs:
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KytyPS5-Windows-x64
+          name: msoPS5-Windows-x64
           path: _Build/windows/install/**
           if-no-files-found: error
 
   macos:
-    name: Build KytyPS5 (macOS)
+    name: Build msoPS5 (macOS)
     needs: metadata
     runs-on: macos-15
 
@@ -228,7 +228,7 @@ jobs:
           archive="$RUNNER_TEMP/MoltenVK-macos.tar"
           package="$RUNNER_TEMP/MoltenVK"
           install_dir="_Build/macos/install"
-          app_dir="$install_dir/KytyPS5.app"
+          app_dir="$install_dir/msoPS5.app"
           moltenvk="$install_dir/libMoltenVK.dylib"
           curl --fail --location --retry 3 \
             --output "$archive" \
@@ -250,12 +250,12 @@ jobs:
         shell: bash
         run: |
           install_dir="_Build/macos/install"
-          app_dir="$install_dir/KytyPS5.app"
+          app_dir="$install_dir/msoPS5.app"
           test -d "$app_dir"
           for binary in \
             "$install_dir/kyty_emulator" \
             "$install_dir/libMoltenVK.dylib" \
-            "$app_dir/Contents/MacOS/KytyPS5" \
+            "$app_dir/Contents/MacOS/msoPS5" \
             "$app_dir/Contents/MacOS/kyty_emulator" \
             "$app_dir/Contents/Frameworks/libMoltenVK.dylib"; do
             file "$binary"
@@ -264,7 +264,7 @@ jobs:
           for binary in \
             "$install_dir/kyty_emulator" \
             "$install_dir/libMoltenVK.dylib" \
-            "$app_dir/Contents/MacOS/KytyPS5" \
+            "$app_dir/Contents/MacOS/msoPS5" \
             "$app_dir/Contents/MacOS/kyty_emulator" \
             "$app_dir/Contents/Frameworks/libMoltenVK.dylib"; do
             codesign --verify --strict "$binary"
@@ -275,7 +275,7 @@ jobs:
         shell: bash
         run: |
           install_dir="_Build/macos/install"
-          archive="$RUNNER_TEMP/KytyPS5-macOS-x86_64.zip"
+          archive="$RUNNER_TEMP/msoPS5-macOS-x86_64.zip"
           (
             cd "$install_dir"
             zip -qry "$archive" .
@@ -285,12 +285,12 @@ jobs:
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KytyPS5-macOS-x86_64
-          path: ${{ runner.temp }}/KytyPS5-macOS-x86_64.zip
+          name: msoPS5-macOS-x86_64
+          path: ${{ runner.temp }}/msoPS5-macOS-x86_64.zip
           if-no-files-found: error
 
   linux:
-    name: Build KytyPS5 (Linux)
+    name: Build msoPS5 (Linux)
     needs: metadata
     runs-on: ubuntu-24.04
 
@@ -426,16 +426,16 @@ jobs:
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KytyPS5-Linux-x86_64
+          name: msoPS5-Linux-x86_64
           path: _Build/linux/install/**
           if-no-files-found: error
 
   release:
-    name: Release KytyPS5
+    name: Release msoPS5
     if: >-
       always() &&
       github.event_name == 'push' &&
-      github.repository == 'KytyPS5/KytyPS5' &&
+      github.repository == 'mesutozansoftware/msoPS5' &&
       (needs.windows.result == 'success' ||
        needs.macos.result == 'success' ||
        needs.linux.result == 'success')
@@ -451,28 +451,28 @@ jobs:
         if: needs.windows.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: KytyPS5-Windows-x64
-          path: artifacts/KytyPS5-Windows-x64
+          name: msoPS5-Windows-x64
+          path: artifacts/msoPS5-Windows-x64
 
       - name: Download macOS build
         if: needs.macos.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: KytyPS5-macOS-x86_64
-          path: artifacts/KytyPS5-macOS-x86_64
+          name: msoPS5-macOS-x86_64
+          path: artifacts/msoPS5-macOS-x86_64
 
       - name: Download Linux build
         if: needs.linux.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: KytyPS5-Linux-x86_64
-          path: artifacts/KytyPS5-Linux-x86_64
+          name: msoPS5-Linux-x86_64
+          path: artifacts/msoPS5-Linux-x86_64
 
       - name: Package Windows build
         if: needs.windows.result == 'success'
         shell: bash
         run: |
-          windows_dir="artifacts/KytyPS5-Windows-x64"
+          windows_dir="artifacts/msoPS5-Windows-x64"
           test -d "$windows_dir"
           (
             cd "$windows_dir"
@@ -483,7 +483,7 @@ jobs:
         if: needs.macos.result == 'success'
         shell: bash
         run: |
-          macos_archive="artifacts/KytyPS5-macOS-x86_64/KytyPS5-macOS-x86_64.zip"
+          macos_archive="artifacts/msoPS5-macOS-x86_64/msoPS5-macOS-x86_64.zip"
           test -f "$macos_archive"
           cp "$macos_archive" "$RELEASE_NAME-macOS-x86_64.zip"
 
@@ -491,7 +491,7 @@ jobs:
         if: needs.linux.result == 'success'
         shell: bash
         run: |
-          linux_dir="artifacts/KytyPS5-Linux-x86_64"
+          linux_dir="artifacts/msoPS5-Linux-x86_64"
           test -d "$linux_dir"
           chmod a+x \
             "$linux_dir/launcher" \
