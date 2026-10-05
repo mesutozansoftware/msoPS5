@@ -185,6 +185,21 @@ folders recursively for game directories containing `eboot.bin` and ZArchive (`.
 whose archive root contains `eboot.bin`. Select a detected game and run it from the game list.
 ZArchive dumps are mounted read-only and streamed directly; they do not need to be extracted first.
 
+### Installing game packages
+
+The **Install Package** button (download icon) in the game list toolbar unpacks a legally obtained
+game package into one of your game folders, after which it shows up in the list. Supported inputs:
+
+| Format | Notes |
+| --- | --- |
+| `.pkg` | Fake/debug PS5 packages (fPKG) with the default all-zero passcode, uncompressed or zlib-compressed |
+| `.ffpfs`, `.ffpfsc` | PFS game images, optionally compressed, encrypted with the default key, or wrapping an exFAT image |
+| `.exfat` | exFAT game images |
+
+Not supported yet: retail packages (they are encrypted with console keys and cannot be
+installed), packages that use Kraken compression or the network-install ("data-first") layout,
+and UFS images (`.ffpkg`). The installer reports these cases instead of producing a broken game.
+
 The emulator can also be started directly with a legally obtained game directory, ELF file, or
 ZArchive dump. The adjacent flat or app-bundled `libMoltenVK.dylib` is found automatically:
 

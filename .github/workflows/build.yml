@@ -50,7 +50,11 @@ jobs:
 
       - name: Install build dependencies
         shell: bash
-        run: brew install glslang
+        run: |
+          brew install glslang
+          # The package-installer test fixtures are generated with Python's cryptography package.
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet cryptography
 
       - name: Install Qt 6.10.3
         uses: jurplel/install-qt-action@v4
@@ -86,6 +90,7 @@ jobs:
             -DKYTY_BUILD_REPOSITORY="$KYTY_BUILD_REPOSITORY" \
             -DKYTY_RELEASE_TAG="${{ needs.metadata.outputs.release_tag }}" \
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DPython3_EXECUTABLE="$RUNNER_TEMP/venv/bin/python" \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
@@ -100,13 +105,16 @@ jobs:
               memory_tracker_tests page_manager_tests shader_recompiler_compute_tests \
               resource_tracking_tests scalar_provenance_tests \
               resource_materialization_tests shader_vertex_metadata_tests archive_file_tests avplayer_file_tests \
+              package_installer_tests \
             --parallel
 
       - name: Test
         shell: bash
         run: |
           ctest --test-dir _Build/macos --output-on-failure \
-            -R '^(audio_out2_port|pad_haptics|controller_settings|ime_dialog|lru_cache|memory_tracker|page_manager|resource_tracking|scalar_provenance|resource_materialization|shader_vertex_metadata|archive_file|avplayer_file|virtual_memory_allocation)$'
+            -R '^(audio_out2_port|pad_haptics|controller_settings|ime_dialog|lru_cache|memory_tracker|page_manager|resource_tracking|scalar_provenance|resource_materialization|shader_vertex_metadata|archive_file|avplayer_file|virtual_memory_allocation|package_installer)$'
+          # Fail if the installer test was skipped because its fixture generator is unavailable.
+          ctest --test-dir _Build/macos -N -R '^package_installer$' | grep -q 'Total Tests: 1'
 
       - name: Install
         shell: bash

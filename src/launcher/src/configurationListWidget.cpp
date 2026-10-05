@@ -9,6 +9,7 @@
 #include "gameListTreeWidget.h"
 #include "inputMappingDialog.h"
 #include "mainDialog.h"
+#include "package/packageInstaller.h"
 #include "patchesDialog.h"
 #include "trophyViewerDialog.h"
 
@@ -23,9 +24,12 @@
 #include <QDialog>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QFileInfo>
+#include <QFutureWatcher>
 #include <QHeaderView>
 #include <QIcon>
+#include <QInputDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -37,6 +41,7 @@
 #include <QPalette>
 #include <QPointer>
 #include <QProcess>
+#include <QProgressDialog>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSet>
@@ -46,6 +51,7 @@
 #include <QToolButton>
 #include <QTreeWidget>
 #include <QUrl>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QtCore>
 
 #ifdef __linux__
@@ -54,6 +60,9 @@
 #include <QDBusPendingCallWatcher>
 #endif
 
+#include <atomic>
+#include <exception>
+#include <filesystem>
 #include <memory>
 
 #include "ui_configuration_list_widget.h"
@@ -211,6 +220,7 @@ ConfigurationListWidget::ConfigurationListWidget(QWidget* parent)
 	UpdateToolbarIcons();
 	m_ui->global_settings_button->setToolTip(tr("Edit global settings and game folders"));
 	m_ui->input_mapping_button->setToolTip(tr("Edit global input mapping"));
+	m_ui->install_package_button->setToolTip(tr("Install a PS5 package or game image"));
 
 	m_ui->delete_button->setEnabled(false);
 	m_ui->edit_button->setEnabled(false);
@@ -236,6 +246,8 @@ ConfigurationListWidget::ConfigurationListWidget(QWidget* parent)
 	        &ConfigurationListWidget::edit_global_settings);
 	connect(m_ui->input_mapping_button, &QToolButton::clicked, this,
 	        &ConfigurationListWidget::edit_input_mapping);
+	connect(m_ui->install_package_button, &QToolButton::clicked, this,
+	        &ConfigurationListWidget::install_package);
 	connect(m_ui->edit_button, &QToolButton::clicked, this,
 	        &ConfigurationListWidget::edit_configuration);
 	connect(m_ui->delete_button, &QToolButton::clicked, this,
@@ -290,6 +302,7 @@ void ConfigurationListWidget::UpdateToolbarIcons() {
 	m_ui->refresh_action->setIcon(m_ui->refresh_button->icon());
 	set_icon(m_ui->global_settings_button, QStringLiteral(":/icons/global-settings.svg"));
 	set_icon(m_ui->input_mapping_button, QStringLiteral(":/icons/input-mapping.svg"));
+	set_icon(m_ui->install_package_button, QStringLiteral(":/icons/install-package.svg"));
 	set_icon(m_ui->edit_button, QStringLiteral(":/icons/edit-configuration.svg"));
 	set_icon(m_ui->delete_button, QStringLiteral(":/icons/remove-configuration.svg"));
 }
@@ -826,6 +839,109 @@ void ConfigurationListWidget::edit_input_mapping() {
 		m_global_info.host_input_mapping = dialog.Mapping();
 		WriteSettings();
 	}
+}
+
+namespace {
+
+struct PackageInstallOutcome {
+	bool                   cancelled = false;
+	QString                error;
+	Package::InstallResult result;
+};
+
+} // namespace
+
+void ConfigurationListWidget::install_package() {
+	if (!EnsureGameDirectory()) {
+		return;
+	}
+
+	QStringList folders;
+	for (const auto& dir: m_game_dirs) {
+		if (!dir.isEmpty() && QDir(dir).exists()) {
+			folders.append(dir);
+		}
+	}
+	QString destination = folders.first();
+	if (folders.size() > 1) {
+		bool ok     = false;
+		destination = QInputDialog::getItem(
+		    this, tr("Install Package"), tr("Install into game folder:"), folders, 0, false, &ok);
+		if (!ok) {
+			return;
+		}
+	}
+
+	const QString package = QFileDialog::getOpenFileName(
+	    this, tr("Install Package"), QString(),
+	    tr("PS5 packages and game images (*.pkg *.ffpkg *.ffpfs *.ffpfsc *.exfat);;All files (*)"));
+	if (package.isEmpty()) {
+		return;
+	}
+
+	auto* dialog = new QProgressDialog(tr("Reading the package..."), tr("Cancel"), 0, 1000, this);
+	dialog->setWindowTitle(tr("Install Package"));
+	dialog->setWindowModality(Qt::WindowModal);
+	dialog->setMinimumDuration(0);
+	dialog->setAutoClose(false);
+	dialog->setAutoReset(false);
+	dialog->setValue(0);
+
+	auto cancel = std::make_shared<std::atomic_bool>(false);
+	connect(dialog, &QProgressDialog::canceled, this, [cancel]() { *cancel = true; });
+
+	// The dialog is deleted only after the worker has finished, so the worker may post
+	// progress updates to it.
+	Package::InstallOptions options;
+	options.progress = [dialog, cancel](const Package::InstallProgress& progress) {
+		const int     value = progress.bytes_total == 0
+		                          ? 0
+		                          : static_cast<int>(progress.bytes_done * 1000 / progress.bytes_total);
+		const QString file  = QString::fromStdString(progress.current_file);
+		QMetaObject::invokeMethod(
+		    dialog,
+		    [dialog, value, file]() {
+			    if (!dialog->wasCanceled()) {
+				    dialog->setLabelText(tr("Installing %1").arg(file));
+				    dialog->setValue(value);
+			    }
+		    },
+		    Qt::QueuedConnection);
+		return !*cancel;
+	};
+
+	auto* watcher = new QFutureWatcher<PackageInstallOutcome>(this);
+	connect(watcher, &QFutureWatcher<PackageInstallOutcome>::finished, this,
+	        [this, watcher, dialog]() {
+		        const auto outcome = watcher->result();
+		        watcher->deleteLater();
+		        dialog->deleteLater();
+		        if (outcome.cancelled) {
+			        return;
+		        }
+		        if (!outcome.error.isEmpty()) {
+			        QMessageBox::warning(this, tr("Install Package"), outcome.error);
+			        return;
+		        }
+		        ScanGameDirectory();
+		        const auto folder = QString::fromStdString(outcome.result.game_dir.string());
+		        QMessageBox::information(this, tr("Install Package"),
+		                                 tr("The game was installed to:\n%1").arg(folder));
+	        });
+
+	const std::filesystem::path package_path(package.toStdString());
+	const std::filesystem::path games_path(destination.toStdString());
+	watcher->setFuture(QtConcurrent::run([package_path, games_path, options]() {
+		PackageInstallOutcome outcome;
+		try {
+			outcome.result = Package::InstallPackage(package_path, games_path, options);
+		} catch (const Package::InstallCancelled&) {
+			outcome.cancelled = true;
+		} catch (const std::exception& e) {
+			outcome.error = QString::fromUtf8(e.what());
+		}
+		return outcome;
+	}));
 }
 
 void ConfigurationListWidget::ViewTrophies() {
