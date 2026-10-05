@@ -114,7 +114,8 @@ jobs:
           ctest --test-dir _Build/macos --output-on-failure \
             -R '^(audio_out2_port|pad_haptics|controller_settings|ime_dialog|lru_cache|memory_tracker|page_manager|resource_tracking|scalar_provenance|resource_materialization|shader_vertex_metadata|archive_file|avplayer_file|virtual_memory_allocation|package_installer)$'
           # Fail if the installer test was skipped because its fixture generator is unavailable.
-          ctest --test-dir _Build/macos -N -R '^package_installer$' | grep -q 'Total Tests: 1'
+          registered="$(ctest --test-dir _Build/macos -N -R '^package_installer$')"
+          grep -Eq 'Test +#[0-9]+: package_installer$' <<< "$registered"
 
       - name: Install
         shell: bash
