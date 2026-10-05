@@ -17,6 +17,10 @@
 #include <fmt/format.h>
 #include <magic_enum.hpp>
 
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#endif
+
 using namespace Common;
 using namespace Emulator;
 
@@ -448,6 +452,16 @@ static bool ParseArgs(int argc, char* argv[], RunOptions& options, bool& show_he
 	return show_help || (!options.app0_dir.empty() && !options.elf.empty());
 }
 
+#if defined(__APPLE__)
+// msoPS5 supports Apple Silicon only, where this x86_64 binary runs under Rosetta 2.
+static bool IsRunningUnderRosetta() {
+	int    translated = 0;
+	size_t size       = sizeof(translated);
+	return ::sysctlbyname("sysctl.proc_translated", &translated, &size, nullptr, 0) == 0 &&
+	       translated == 1;
+}
+#endif
+
 static int Main(int argc, char* argv[]) {
 	VirtualMemory::Init();
 	InitializeThreads();
@@ -469,6 +483,13 @@ static int Main(int argc, char* argv[]) {
 		PrintUsage();
 		return 0;
 	}
+
+#if defined(__APPLE__)
+	if (!IsRunningUnderRosetta()) {
+		::fprintf(stderr, "msoPS5 requires a Mac with Apple silicon (M1 or later).\n");
+		return 1;
+	}
+#endif
 
 	Run(options);
 

@@ -10,6 +10,12 @@ if(NOT KYTY_GENERATOR_IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
+# msoPS5 targets Apple Silicon Macs. PS5 games are x86-64 code that the emulator runs directly
+# on the CPU, so the emulator is built for x86_64 and executes under Rosetta 2.
+if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "msoPS5 runs under Rosetta 2 and must be built for x86_64")
+endif()
+
 project(Kyty)
 
 find_program(SCCACHE_PROGRAM sccache)
@@ -36,8 +42,11 @@ if(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
 	set(LINUX TRUE)
 endif()
 
-if (NOT (WIN32 OR LINUX OR APPLE))
-    message(FATAL_ERROR "only Windows, Linux, and macOS builds are supported")
+if(NOT APPLE)
+	message(FATAL_ERROR "msoPS5 only supports macOS on Apple Silicon")
+endif()
+if(NOT CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+	message(FATAL_ERROR "msoPS5 must be built with CMAKE_OSX_ARCHITECTURES=x86_64; it runs under Rosetta 2 on Apple Silicon")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -407,6 +416,22 @@ add_executable(page_manager_tests EXCLUDE_FROM_ALL
 target_link_libraries(page_manager_tests common)
 target_include_directories(page_manager_tests PRIVATE ${inc_headers})
 
+# PS5 package installer used by the launcher (fPKG, PFS and exFAT images).
+find_package(ZLIB REQUIRED)
+file(GLOB package_install_src CONFIGURE_DEPENDS
+	"${KYTY_SOURCE_DIR}/package/*.cpp"
+	"${KYTY_SOURCE_DIR}/package/*.h"
+)
+add_library(package_install STATIC ${package_install_src})
+target_include_directories(package_install PUBLIC "${KYTY_SOURCE_DIR}")
+target_link_libraries(package_install PRIVATE ZLIB::ZLIB nlohmann_json::nlohmann_json)
+# The installer reports errors with exceptions; the project disables them by default.
+target_compile_options(package_install PRIVATE -fexceptions)
+
+add_executable(package_installer_tests EXCLUDE_FROM_ALL "${KYTY_TESTS_DIR}/PackageInstallerTests.cpp")
+target_link_libraries(package_installer_tests package_install)
+target_compile_options(package_installer_tests PRIVATE -fexceptions)
+
 add_executable(archive_file_tests EXCLUDE_FROM_ALL
 	"${KYTY_TESTS_DIR}/ArchiveFileTests.cpp"
 )
@@ -606,6 +631,24 @@ if(BUILD_TESTING)
 	add_test(NAME memory_tracker COMMAND $<TARGET_FILE:memory_tracker_tests>)
 	add_test(NAME page_manager COMMAND $<TARGET_FILE:page_manager_tests>)
 	add_test(NAME archive_file COMMAND $<TARGET_FILE:archive_file_tests>)
+	# The installer fixtures are generated with Python's `cryptography` package.
+	find_package(Python3 COMPONENTS Interpreter)
+	if(Python3_Interpreter_FOUND)
+		execute_process(COMMAND "${Python3_EXECUTABLE}" -c "import cryptography"
+			RESULT_VARIABLE kyty_python_cryptography OUTPUT_QUIET ERROR_QUIET)
+	endif()
+	if(Python3_Interpreter_FOUND AND kyty_python_cryptography EQUAL 0)
+		set(package_fixture_dir "${CMAKE_CURRENT_BINARY_DIR}/package_fixtures")
+		add_test(NAME package_installer_fixtures
+			COMMAND "${Python3_EXECUTABLE}" "${KYTY_TESTS_DIR}/data/package/generate_fixtures.py"
+				"${package_fixture_dir}")
+		set_tests_properties(package_installer_fixtures PROPERTIES FIXTURES_SETUP package_fixtures)
+		add_test(NAME package_installer
+			COMMAND $<TARGET_FILE:package_installer_tests> "${package_fixture_dir}")
+		set_tests_properties(package_installer PROPERTIES FIXTURES_REQUIRED package_fixtures)
+	else()
+		message(STATUS "Python 3 with the cryptography package not found; skipping package_installer test")
+	endif()
 	add_test(NAME avplayer_file COMMAND $<TARGET_FILE:avplayer_file_tests>)
 	add_test(NAME bit_array COMMAND $<TARGET_FILE:bit_array_tests>)
 	add_test(NAME lru_cache COMMAND $<TARGET_FILE:lru_cache_tests>)
@@ -682,6 +725,7 @@ if(BUILD_TESTING)
 		memory_tracker_tests
 		page_manager_tests
 		archive_file_tests
+		package_installer_tests
 		avplayer_file_tests
 		bit_array_tests
 		lru_cache_tests

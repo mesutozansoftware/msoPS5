@@ -20,7 +20,7 @@ add_executable(launcher WIN32
 )
 
 
-target_link_libraries(launcher Qt6::Concurrent Qt6::Network Qt6::Widgets Vulkan::Headers SDL3::SDL3-static kyty_git_version common)
+target_link_libraries(launcher Qt6::Concurrent Qt6::Network Qt6::Widgets Vulkan::Headers SDL3::SDL3-static kyty_git_version common package_install)
 if(LINUX)
 	find_package(Qt6 COMPONENTS DBus REQUIRED)
 	target_link_libraries(launcher Qt6::DBus)
@@ -29,7 +29,7 @@ if(WIN32)
 target_link_libraries(launcher setupapi)
 endif()
 if (CLANG AND NOT KYTY_CLANG_CL)
-target_compile_options(launcher PRIVATE -frtti)
+target_compile_options(launcher PRIVATE -frtti -fexceptions)
 target_link_libraries(launcher pthread)
 endif()
 target_include_directories(launcher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -71,13 +71,13 @@ endif()
 
 set(launcher_name "launcher")
 if(APPLE)
-	set(launcher_name "KytyPS5")
+	set(launcher_name "msoPS5")
 endif()
 
 set_target_properties(launcher PROPERTIES OUTPUT_NAME ${launcher_name})
 
 if(APPLE)
-	# macOS bundle: KytyPS5.app with launcher as main executable and
+	# macOS bundle: msoPS5.app with launcher as main executable and
 	# kyty_emulator as helper inside Contents/MacOS. MoltenVK is found
 	# next to a flat executable or in the bundle's Contents/Frameworks;
 	# no rpath fixup is needed because SDL loads it by absolute path.
@@ -95,15 +95,15 @@ install(TARGETS launcher
 	RUNTIME DESTINATION .)
 
 if(APPLE)
-	install(TARGETS kyty_emulator DESTINATION "KytyPS5.app/Contents/MacOS")
-	install(FILES "${KYTY_TROPHY_UNLOCK_SOUND}" DESTINATION "KytyPS5.app/Contents/Resources/assets/sounds")
+	install(TARGETS kyty_emulator DESTINATION "msoPS5.app/Contents/MacOS")
+	install(FILES "${KYTY_TROPHY_UNLOCK_SOUND}" DESTINATION "msoPS5.app/Contents/Resources/assets/sounds")
 	# Deploy and ad-hoc sign the Qt frameworks and plugins in the bundle.
 	find_program(KYTY_MACDEPLOYQT NAMES macdeployqt PATHS "${Qt6_DIR}/../../../bin" NO_DEFAULT_PATH)
 	if(NOT KYTY_MACDEPLOYQT)
 		message(FATAL_ERROR "Could not find macdeployqt")
 	endif()
 	install(CODE "
-		execute_process(COMMAND \"${KYTY_MACDEPLOYQT}\" \"\${CMAKE_INSTALL_PREFIX}/KytyPS5.app\"
+		execute_process(COMMAND \"${KYTY_MACDEPLOYQT}\" \"\${CMAKE_INSTALL_PREFIX}/msoPS5.app\"
 			-codesign=-
 			RESULT_VARIABLE _kyty_deploy_result)
 		if(NOT _kyty_deploy_result EQUAL 0)
